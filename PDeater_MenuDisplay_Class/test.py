@@ -5,11 +5,9 @@ from tkinter import ttk, Label, Button, StringVar, messagebox
 
 class OrderManager(ttk.Frame):
    def __init__(self,):
-       self.root = root
+      self.root = root
       #super().__init__(parent, borderwidth=1, relief="groove")
       #self.pack(fill="both", expand=True)
-
-   def temp_name(self, table_number):
       right_box = ttk.Frame()
       right_box.grid(row=0, column=1, sticky="nsew")
       
@@ -50,8 +48,10 @@ class OrderManager(ttk.Frame):
 
 
 class MenuDisplay:
-    def __init__(self, root):
+    def __init__(self, root, OrderManager_object):
         self.root = root
+
+        self.class_OrderManager = OrderManager_object
     
         self.menu = {
          'Apps': [
@@ -143,7 +143,7 @@ class MenuDisplay:
 
         #Creates a button for modifying the menu if True -- See UpdateItem() for explanation
         if manager_status:
-            edit_menu_button = tk.Button(self.menu_frame,text=f"Edit Menu",command= self.UpdateItem)
+            edit_menu_button = tk.Button(self.menu_frame,height=1,width=12,text=f"Edit Menu",command= self.UpdateItem)
             edit_menu_button.grid(row=1, column=1)
 
 
@@ -173,7 +173,7 @@ class MenuDisplay:
             #formats values into a list
             button_output = (sub_key['name'], sub_key['price'])
 
-            button = tk.Button(self.detail_frame,text = button_text, bg="seashell3",height=2,width=15,command = lambda entry = button_output: self.AddItem(entry))
+            button = tk.Button(self.detail_frame,text = button_text,  bg="seashell3",height=2,width=15,command = lambda entry = button_output: self.AddItem(entry))
             button.grid(row=position_on_x, column=position_on_y,padx=6,pady=6)
 
             #Sets the positioning of the buttons, creating new rows as necessary
@@ -189,10 +189,9 @@ class MenuDisplay:
     It will add the pressed item to the order
     """
     def AddItem(self,entry):
-        print(str(entry)) #Replace with system integration
         name = entry[0]
         price = entry[1]
-        OrderManager().add_order_item(name,price)
+        self.class_OrderManager.add_order_item(name, price)
 
     """
     This function is for when the modify menu button has been clicked.
@@ -450,11 +449,12 @@ def you_logged_in():
     frame = Diningapp(root, on_table_select=handle_selection)
     frame.grid(row=0,column=0,padx=10,pady=10)
 
-    x = MenuDisplay(root)
-    x.CreateMenu(1,1,True)
+    OrderManager()
 
-    temp = OrderManager()
-    temp.temp_name(3)
+    OrderManager_object = OrderManager()
+    x = MenuDisplay(root, OrderManager_object)
+    x.CreateMenu(1,1,True)
+    
     #new_frame.grid(row=2,column=1,padx=10,pady=10)
 
 
