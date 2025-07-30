@@ -11,6 +11,28 @@ class OrderManager(ttk.Frame):
       right_box = ttk.Frame()
       right_box.grid(row=0, column=1, sticky="nsew")
       
+
+      # Storage -- Remove if broken
+      self.order_storage = {
+          "Table_1": [
+              {'seat': '','name': '','price': ''}
+          ],
+          "Table_2": [
+              {'seat': '','name': '','price': ''}
+          ],
+          "Table_3": [
+              {'seat': '','name': '','price': ''}
+          ],
+          "Table_4": [
+              {'seat': '','name': '','price': ''}
+          ],
+          "Booth_1": [
+              {'seat': '','name': '','price': ''}
+          ],
+          "Booth_2": [
+              {'seat': '','name': '','price': ''}
+          ],
+        }
       
       self.tree = ttk.Treeview(right_box, columns=("Seat", "Item", "Price"), show="headings")
       self.tree.heading("Seat", text="Seat")
@@ -125,24 +147,25 @@ class MenuDisplay:
         self.first_iteration = True
 
         # Creates the base menu frame
-        self.menu_frame = tk.Frame(self.root, bg="lightblue", width=500, height=100)
+        self.menu_frame = tk.Frame(self.root, bg="gray85",width=500, height=100)
         self.menu_frame.grid(row = row_position, column = column_position)
         #Ignore # menu_frame.grid_propagate(0) #Ignore
         
         # Creates a frame to hold buttons for choosing sections
-        section_frame = tk.Frame(self.menu_frame, bg="lightblue")
+        section_frame = tk.Frame(self.menu_frame, bg="gray85")
         section_frame.grid(row=0, column=0, padx=5, pady=5)
 
         # Creates the buttons for the previously mentioned frame
         for section in self.menu.keys():
-            section_button = tk.Button(section_frame, text = section, command = lambda open_section = section: self.populate_section(open_section), bg="seashell3")
+            section_button = tk.Button(section_frame, text = section, command = lambda open_section = section: self.populate_section(open_section), bg="seashell3",height=1,width=10)
             section_button.pack(side=TOP, expand=True)
 
         # calls the function with the specified parameter -- See block comment for further details
         self.populate_section(list(self.menu.keys())[0])
 
         #Creates a button for modifying the menu if True -- See UpdateItem() for explanation
-        if manager_status:
+        extract_status = manager_status[2]
+        if extract_status:
             edit_menu_button = tk.Button(self.menu_frame,height=1,width=12,text=f"Edit Menu",command= self.UpdateItem)
             edit_menu_button.grid(row=1, column=1)
 
@@ -150,8 +173,9 @@ class MenuDisplay:
 
     def populate_section(self, section):
         if self.first_iteration:
-            self.detail_frame = tk.Frame(self.menu_frame,bg="lightblue")
+            self.detail_frame = tk.Frame(self.menu_frame,bg="gray85",width=375, height=215)
             self.detail_frame.grid(row=0, column=1)
+            self.detail_frame.grid_propagate(False)
             self.first_iteration = False
 
         if self.detail_frame.winfo_exists():
@@ -255,15 +279,15 @@ class Diningapp(ttk.Frame):
         style.configure("TButton", font=("Arial", 10))
         style.configure("TCheckbutton", font=("Arial", 9))
         self.configure(style="TFrame")
-        self["padding"] = 20
+        self["padding"] = 5
 
         style.configure("Unoccupied.TButton", background="green", foreground="black")
         style.configure("Selected.TButton", background="red", foreground="black")
 
         title_label = ttk.Label(self, text="Table Selection", font=("Helvetica", 14, "bold"))
-        title_label.grid(row=0, column=0, pady=(10, 20))
+        title_label.grid(row=0, column=0, pady=(5, 10))
 
-        table_frame = ttk.Frame(self, padding=10, relief="ridge", borderwidth=2)
+        table_frame = ttk.Frame(self, padding=5, relief="ridge", borderwidth=2)
         table_frame.grid(row=1, column=0, sticky="nsew")
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -373,12 +397,13 @@ class Diningapp(ttk.Frame):
 
 
 
+
 class LoginScreen(ttk.Frame):
 
    VALID_USERS = {
-      "111222": "Logan",
-      "112212": "Bryce",
-      "121212": "Paul",
+      "111222": ["Logan",True],
+      "112212": ["Bryce",False],
+      "121212": ["Paul",True],
    }
 
    def __init__(self, root,on_login_success):
@@ -395,6 +420,7 @@ class LoginScreen(ttk.Frame):
 
       pad_frame = ttk.Frame(self)
       pad_frame.pack()
+    
 
       buttons = [
          ('1', '2', '3'),
@@ -423,9 +449,11 @@ class LoginScreen(ttk.Frame):
    def validate_login(self):
       uid = self.user_id.get()
       if uid in self.VALID_USERS:
-         name = self.VALID_USERS[uid]
+         uid_values = self.VALID_USERS[uid]
+         name = uid_values[0]
+         permision = uid_values[1]
          self.destroy()
-         self.on_login_success(uid, name)
+         self.on_login_success(uid, name,permision)
       else:
          messagebox.showerror("Login Failed", "Invalid User ID.")
 
@@ -434,28 +462,38 @@ class LoginScreen(ttk.Frame):
 
 root = tk.Tk()
 root.title("Test window")
-root.geometry("1100x900") 
+root.geometry("1280x720") 
+root.configure(bg="gray85")
 
 
-def you_logged_in():
+def you_logged_in(user_info):
     for widget in root.winfo_children():
         widget.destroy()
-    
 
 
     def handle_selection(table_name, seat_number, selected):
-        print(f"[OrderManager] Table: {table_name}, Seat: {seat_number}, Selected: {selected}")
+        pass
+        #print(f"[OrderManager] Table: {table_name}, Seat: {seat_number}, Selected: {selected}")
 
     frame = Diningapp(root, on_table_select=handle_selection)
     frame.grid(row=0,column=0,padx=10,pady=10)
+
 
     OrderManager()
 
     OrderManager_object = OrderManager()
     x = MenuDisplay(root, OrderManager_object)
-    x.CreateMenu(1,1,True)
+    x.CreateMenu(1,1,user_info)
+
+
+    user_info_frame = tk.Frame(root, bg="gray85",width=500, height=100)
+    user_info_frame.grid(row = 1, column = 0)
+
+    if user_info[2]:
+        tk.Label(user_info_frame,text= f"** Manager View **").pack(pady=5)
+    tk.Label(user_info_frame,text= f"Name - {user_info[1]}").pack(pady=5)
+    tk.Label(user_info_frame,text= f"User ID - {user_info[0]}").pack(pady=5)
     
-    #new_frame.grid(row=2,column=1,padx=10,pady=10)
 
 
 
@@ -467,9 +505,9 @@ def show_login_screen():
     clear_window()
     LoginScreen(root, handle_login)
 
-def handle_login(user_id, name):
-    suser_info = (user_id, name)
-    you_logged_in()
+def handle_login(user_id, name, permision):
+    user_info = [user_id, name, permision]
+    you_logged_in(user_info)
 
 
 show_login_screen()
