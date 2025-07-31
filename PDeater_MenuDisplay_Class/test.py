@@ -6,10 +6,14 @@ from tkinter import ttk, Label, Button, StringVar, messagebox
 class OrderManager(ttk.Frame):
    def __init__(self,):
       self.root = root
+
+      self.current_table = None
+      self.current_seat = None
+
       #super().__init__(parent, borderwidth=1, relief="groove")
       #self.pack(fill="both", expand=True)
-      right_box = ttk.Frame()
-      right_box.grid(row=0, column=1, sticky="nsew")
+      self.right_box = ttk.Frame()
+      self.right_box.grid(row=0, column=1, sticky="nsew")
       
 
       # Storage -- Remove if broken
@@ -34,7 +38,7 @@ class OrderManager(ttk.Frame):
           ],
         }
       
-      self.tree = ttk.Treeview(right_box, columns=("Seat", "Item", "Price"), show="headings")
+      self.tree = ttk.Treeview(self.right_box, columns=("Seat", "Item", "Price"), show="headings")
       self.tree.heading("Seat", text="Seat")
       self.tree.heading("Item", text="Item")
       self.tree.heading("Price", text="Price")
@@ -43,25 +47,47 @@ class OrderManager(ttk.Frame):
       self.tree.column("Price", width=80)
       self.tree.grid(row=0, column=0, sticky="nsew", pady=(10, 0))
 
-      self.total_label = ttk.Label(right_box, text="Total: $0.00", font=('Arial', 12, 'bold'))
+      self.total_label = ttk.Label(self.right_box, text="Total: $0.00", font=('Arial', 12, 'bold'))
       self.total_label.grid(row=1, column=0, pady=5)
       
       self.order_status = StringVar()
       self.order_status.set('')
 
-      self.status_label = Label(right_box, textvariable=self.order_status)
+      self.status_label = Label(self.right_box, textvariable=self.order_status)
       self.status_label.grid(row=2, column=0, pady=5)
 
-      self.place_order_button = Button(right_box, text="Place Order", command=self.place_order)
+      self.place_order_button = Button(self.right_box, text="Place Order", command=self.place_order)
       self.place_order_button.grid(row=3, column=0, pady=10)
 
       self.total = 0.0
 
 
+    #Paul Additions
+   def set_table_or_booth(self, table_or_booth):
+      self.current_table = table_or_booth
+      self.table_label = Label(self.right_box, text=f"Active Table: {self.current_table}")
+      self.table_label.grid(row=4, column=0, pady=5)
+
+   def set_current_seat(self,table_or_booth,seat_number,select_or_deselect):
+      if table_or_booth == self.current_table and select_or_deselect:
+
+        self.current_seat = seat_number
+
+        self.seat_label = Label(self.right_box, text=f"Active Seat: {self.current_seat}")
+        self.seat_label.grid(row=5, column=0, pady=5)
+      elif select_or_deselect == False:
+          self.current_seat = ""
+          self.seat_label.config(text="No Active Seat")
+      else:
+        messagebox.showwarning(title="ERROR - Seat Selected outside CurrentTable", message="Please only select seats with in the active table")
+
    def add_order_item(self, name, price):
-      self.tree.insert("", "end", values=("", name, f"${price:.2f}"))
-      self.total += price
-      self.total_label.config(text=f"Total: ${self.total:.2f}")
+      if self.current_table:
+        self.tree.insert("", "end", values=(self.current_seat, name, f"${price:.2f}"))
+        self.total += price
+        self.total_label.config(text=f"Total: ${self.total:.2f}")
+      else:
+          messagebox.showwarning(title="ERROR - No Table Selected", message="Please select a Table")
 
    def place_order(self):
       self.order_status.set("Order placed successfully!")
@@ -376,22 +402,25 @@ class Diningapp(ttk.Frame):
 
     def select_table(self, table_name):
         
-        btn = self.tables[table_name]
-        btn.configure(style="Selected.TButton")
+        #btn = self.tables[table_name]
+        #btn.configure(style="Selected.TButton")
+        self.on_table_select.set_table_or_booth(table_name)
 
     def toggle_seat(self, table_name, seat_number, var):
         if var.get():
             if seat_number not in self.selected_seats[table_name]:
                 self.selected_seats[table_name].append(seat_number)
                 print(f"{table_name} - Seat {seat_number} selected.")
-                if self.on_table_select:
-                    self.on_table_select(table_name=table_name, seat_number=seat_number, selected=True)
+                self.on_table_select.set_current_seat(table_name,seat_number,True)
+                #if self.on_table_select:
+                 #   self.on_table_select(table_name=table_name, seat_number=seat_number, selected=True)
         else:
             if seat_number in self.selected_seats[table_name]:
                 self.selected_seats[table_name].remove(seat_number)
                 print(f"{table_name} - Seat {seat_number} deselected.")
-                if self.on_table_select:
-                    self.on_table_select(table_name=table_name, seat_number=seat_number, selected=False)
+                self.on_table_select.set_current_seat(table_name,seat_number,False)
+                #if self.on_table_select:
+                 #   self.on_table_select(table_name=table_name, seat_number=seat_number, selected=False)
 
 
 
@@ -475,13 +504,18 @@ def you_logged_in(user_info):
         pass
         #print(f"[OrderManager] Table: {table_name}, Seat: {seat_number}, Selected: {selected}")
 
-    frame = Diningapp(root, on_table_select=handle_selection)
+
+    OrderManager()
+    OrderManager_object = OrderManager()
+
+
+    frame = Diningapp(root, OrderManager_object)
     frame.grid(row=0,column=0,padx=10,pady=10)
 
 
-    OrderManager()
 
-    OrderManager_object = OrderManager()
+
+
     x = MenuDisplay(root, OrderManager_object)
     x.CreateMenu(1,1,user_info)
 
@@ -490,9 +524,9 @@ def you_logged_in(user_info):
     user_info_frame.grid(row = 1, column = 0)
 
     if user_info[2]:
-        tk.Label(user_info_frame,text= f"** Manager View **").pack(pady=5)
-    tk.Label(user_info_frame,text= f"Name - {user_info[1]}").pack(pady=5)
-    tk.Label(user_info_frame,text= f"User ID - {user_info[0]}").pack(pady=5)
+        tk.Label(user_info_frame,text= f"** Manager View **", font=("Arial", 16)).pack(pady=5)
+    tk.Label(user_info_frame,text= f"Name - {user_info[1]}", font=("Arial", 16)).pack(pady=5)
+    tk.Label(user_info_frame,text= f"User ID - {user_info[0]}", font=("Arial", 16)).pack(pady=5)
     
 
 
