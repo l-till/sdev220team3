@@ -4,119 +4,150 @@ from tkinter import ttk, Label, Button, StringVar, messagebox
 
 
 class OrderManager(ttk.Frame):
-   def __init__(self,):
-      self.root = root
+    def __init__(self,):
+        self.root = root
 
-      self.current_table = None
-      self.current_seat = None
+        self.current_table = None
+        self.current_seat = None
 
-      self.right_box = ttk.Frame()
-      self.right_box.grid(row=0, column=1, sticky="nsew")
-      
+        self.right_box = ttk.Frame()
+        self.right_box.grid(row=0, column=1, sticky="nsew")
+        
 
-      # Storage -- Remove if broken
-      self.order_storage = {
-          "Table 1": [
-              {'seat': '','name': '','price': 0}
-          ],
-          "Table 2": [
-              {'seat': '','name': '','price': 0}
-          ],
-          "Table 3": [
-              {'seat': '','name': '','price': 0}
-          ],
-          "Table 4": [
-              {'seat': '','name': '','price': 0}
-          ],
-          "Booth 1": [
-              {'seat': '','name': '','price':0}
-          ],
-          "Booth 2": [
-              {'seat': '','name': '','price': 0}
-          ],
-        }
-      
-      self.tree = ttk.Treeview(self.right_box, columns=("Seat", "Item", "Price"), show="headings")
-      self.tree.heading("Seat", text="Seat")
-      self.tree.heading("Item", text="Item")
-      self.tree.heading("Price", text="Price")
-      self.tree.column("Seat", width=50)
-      self.tree.column("Item", width=150)
-      self.tree.column("Price", width=80)
-      self.tree.grid(row=0, column=0, sticky="nsew", pady=(10, 0))
+        # Storage -- Remove if broken
+        self.order_storage = {
+            "Table 1": [
+                {'seat': '','name': '','price': 0}
+            ],
+            "Table 2": [
+                {'seat': '','name': '','price': 0}
+            ],
+            "Table 3": [
+                {'seat': '','name': '','price': 0}
+            ],
+            "Table 4": [
+                {'seat': '','name': '','price': 0}
+            ],
+            "Booth 1": [
+                {'seat': '','name': '','price':0}
+            ],
+            "Booth 2": [
+                {'seat': '','name': '','price': 0}
+            ],
+            }
+        
+        self.tree = ttk.Treeview(self.right_box, columns=("Seat", "Item", "Price"), show="headings")
+        self.tree.heading("Seat", text="Seat")
+        self.tree.heading("Item", text="Item")
+        self.tree.heading("Price", text="Price")
+        self.tree.column("Seat", width=50)
+        self.tree.column("Item", width=150)
+        self.tree.column("Price", width=80)
+        self.tree.grid(row=0, column=0, sticky="nsew", pady=(10, 0))
 
-      self.total_label = ttk.Label(self.right_box, text="Total: $0.00", font=('Arial', 12, 'bold'))
-      self.total_label.grid(row=1, column=0, pady=5)
-      
-      self.order_status = StringVar()
-      self.order_status.set('')
+        self.total_label = ttk.Label(self.right_box, text="Total: $0.00", font=('Arial', 12, 'bold'))
+        self.total_label.grid(row=1, column=0, pady=5)
+        
+        self.order_status = StringVar()
+        self.order_status.set('')
 
-      self.status_label = Label(self.right_box, textvariable=self.order_status)
-      self.status_label.grid(row=2, column=0, pady=5)
+        self.status_label = Label(self.right_box, textvariable=self.order_status)
+        self.status_label.grid(row=2, column=0, pady=5)
 
-      self.place_order_button = Button(self.right_box, text="Place Order", command=self.place_order)
-      self.place_order_button.grid(row=3, column=0, pady=10)
+        self.place_order_button = Button(self.right_box, text="Place Order", command=self.place_order)
+        self.place_order_button.grid(row=3, column=0, pady=10)
 
-      self.table_label = Label(self.right_box, text=f"Active Table: {self.current_table}")
-      self.table_label.grid(row=4, column=0, pady=5)
+        self.delete_item_button = Button(self.right_box, text="Delete Item", command=self.delete_selected_item)
+        self.delete_item_button.grid(row=4, column=0, pady=5)
 
-      self.seat_label = Label(self.right_box, text='')
-      self.seat_label.grid(row=5, column=0, pady=5)
 
-      self.total = 0.0
+        self.table_label = Label(self.right_box, text=f"Active Table: {self.current_table}")
+        self.table_label.grid(row=5, column=0, pady=5)
 
-    #Paul Additions
-   def set_table_or_booth(self, table_or_booth):
-      if table_or_booth != self.current_table:
-        self.current_table = table_or_booth
+        self.seat_label = Label(self.right_box, text='')
+        self.seat_label.grid(row=6, column=0, pady=5)
 
-        if table_or_booth in self.order_storage:
-          self.tree.delete(*self.tree.get_children())
+        self.total = 0.0
 
-          self.active_order_storage = self.order_storage[table_or_booth]
-          self.total = 0.0
+        #Paul Additions
+    def set_table_or_booth(self, table_or_booth):
+        if table_or_booth != self.current_table:
+            self.current_table = table_or_booth
 
-          for main_key, sub_key in enumerate(self.active_order_storage):
-            #This check exists because I want order_storage to have examples of its format
-            if sub_key['price'] != 0:
-                self.tree.insert("", "end", values=(sub_key['seat'], sub_key['name'], f"${sub_key['price']}"))
+            if table_or_booth in self.order_storage:
+                self.tree.delete(*self.tree.get_children())
 
-            self.total += sub_key['price']
+                self.active_order_storage = self.order_storage[table_or_booth]
+                self.total = 0.0
+
+            for main_key, sub_key in enumerate(self.active_order_storage):
+                #This check exists because I want order_storage to have examples of its format
+                if sub_key['price'] != 0:
+                    self.tree.insert("", "end", values=(sub_key['seat'], sub_key['name'], f"${sub_key['price']}"))
+
+                self.total += sub_key['price']
+                self.total_label.config(text=f"Total: ${self.total:.2f}")
+
+
+            self.table_label.config(text=f"Active Table: {self.current_table}")
+            self.current_seat = ""
+            self.seat_label.config(text="No Active Seat")
+        else:
+            pass
+
+    def set_current_seat(self,table_or_booth,seat_number,select_or_deselect):
+        if table_or_booth == self.current_table and select_or_deselect:
+
+            self.current_seat = seat_number
+
+            self.seat_label.config(text=f"Active Seat: {self.current_seat}")
+        elif select_or_deselect == False:
+            self.current_seat = ""
+            self.seat_label.config(text="No Active Seat")
+        else:
+            messagebox.showwarning(title="ERROR - Seat Selected outside CurrentTable", message="Please only select seats with in the active table")
+
+    def add_order_item(self, name, price):
+        if self.current_table:
+            self.tree.insert("", "end", values=(self.current_seat, name, f"${price:.2f}"))
+            self.total += price
             self.total_label.config(text=f"Total: ${self.total:.2f}")
 
+            self.active_order_storage.append({'seat': self.current_seat,'name': name,'price': price})
 
-        self.table_label.config(text=f"Active Table: {self.current_table}")
-        self.current_seat = ""
-        self.seat_label.config(text="No Active Seat")
-      else:
-          pass
+        else:
+            messagebox.showwarning(title="ERROR - No Table Selected", message="Please select a Table")
 
-   def set_current_seat(self,table_or_booth,seat_number,select_or_deselect):
-      if table_or_booth == self.current_table and select_or_deselect:
+    def place_order(self):
+        self.order_status.set("Order placed successfully!")
+        messagebox.showinfo("Order Status", "Your order has been placed.")
 
-        self.current_seat = seat_number
+    def delete_selected_item(self):
+        selected_item = self.tree.selection()
 
-        self.seat_label.config(text=f"Active Seat: {self.current_seat}")
-      elif select_or_deselect == False:
-          self.current_seat = ""
-          self.seat_label.config(text="No Active Seat")
-      else:
-        messagebox.showwarning(title="ERROR - Seat Selected outside CurrentTable", message="Please only select seats with in the active table")
+        if not selected_item:
+            return  # Silently do nothing if nothing is selected
 
-   def add_order_item(self, name, price):
-      if self.current_table:
-        self.tree.insert("", "end", values=(self.current_seat, name, f"${price:.2f}"))
-        self.total += price
+        item_values = self.tree.item(selected_item, 'values')
+
+        if not item_values or not self.current_table:
+            return
+
+        seat, name, price_str = item_values
+        price = float(price_str.replace('$', ''))
+
+        # Remove from Treeview
+        self.tree.delete(selected_item)
+
+        # Remove from internal storage
+        for i, entry in enumerate(self.active_order_storage):
+            if (entry['seat'] == seat and entry['name'] == name and entry['price'] == price):
+                del self.active_order_storage[i]
+                break
+
+        # Update total
+        self.total -= price
         self.total_label.config(text=f"Total: ${self.total:.2f}")
-
-        self.active_order_storage.append({'seat': self.current_seat,'name': name,'price': price})
-
-      else:
-          messagebox.showwarning(title="ERROR - No Table Selected", message="Please select a Table")
-
-   def place_order(self):
-      self.order_status.set("Order placed successfully!")
-      messagebox.showinfo("Order Status", "Your order has been placed.")
 
 
 class MenuDisplay:
