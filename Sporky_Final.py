@@ -452,7 +452,6 @@ class Diningapp(ttk.Frame):
         self["padding"] = 5
 
         style.configure("Unoccupied.TButton", background="green", foreground="black")
-        style.configure("Selected.TButton", background="red", foreground="black")
 
         title_label = ttk.Label(self, text="Table Selection", font=("Helvetica", 14, "bold"))
         title_label.grid(row=0, column=0, pady=(5, 10))
@@ -551,17 +550,11 @@ class Diningapp(ttk.Frame):
         if var.get():
             if seat_number not in self.selected_seats[table_name]:
                 self.selected_seats[table_name].append(seat_number)
-                #print(f"{table_name} - Seat {seat_number} selected.")
                 self.on_table_select.set_current_seat(table_name,seat_number,True)
-                #if self.on_table_select:
-                 #   self.on_table_select(table_name=table_name, seat_number=seat_number, selected=True)
         else:
             if seat_number in self.selected_seats[table_name]:
                 self.selected_seats[table_name].remove(seat_number)
-                #print(f"{table_name} - Seat {seat_number} deselected.")
                 self.on_table_select.set_current_seat(table_name,seat_number,False)
-                #if self.on_table_select:
-                 #   self.on_table_select(table_name=table_name, seat_number=seat_number, selected=False)
 
 
 class LoginScreen(ttk.Frame):
